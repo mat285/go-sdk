@@ -51,10 +51,6 @@ func NewReloader(ctx context.Context, opts ...ReloaderOption) (*Reloader, error)
 }
 
 func (r *Reloader) Start(ctx context.Context) error {
-	return r.start(ctx)
-}
-
-func (r *Reloader) Run(ctx context.Context) error {
 	return r.run(ctx)
 }
 
@@ -78,24 +74,6 @@ func (r *Reloader) GetCertificate(helo *tls.ClientHelloInfo) (*tls.Certificate, 
 		return nil, fmt.Errorf("no cert for name %s", server)
 	}
 	return &cert.Certificate, nil
-}
-
-func (r *Reloader) start(ctx context.Context) error {
-	if r.running {
-		return ErrAlreadyRunning
-	}
-	r.Lock.Lock()
-	if r.running {
-		r.Lock.Unlock()
-		return ErrAlreadyRunning
-	}
-	err := r.initialize(ctx)
-	if err != nil {
-		r.Lock.Unlock()
-		return err
-	}
-	r.Lock.Unlock()
-	return r.run(ctx)
 }
 
 func (r *Reloader) run(ctx context.Context) error {
