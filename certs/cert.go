@@ -1,6 +1,7 @@
 package certs
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
@@ -11,7 +12,6 @@ import (
 )
 
 type Cert struct {
-	// lock     sync.Mutex
 	Name     string
 	CertFile File
 	KeyFile  File
@@ -23,8 +23,6 @@ func (c *Cert) DNSNames() []string {
 	if c == nil {
 		return nil
 	}
-	// c.lock.Lock()
-	// defer c.lock.Unlock()
 
 	if len(c.Certificate.Certificate) == 0 {
 		return nil
@@ -43,8 +41,6 @@ func (c *Cert) Reload() error {
 	if c == nil {
 		return fmt.Errorf("nil cert")
 	}
-	// c.lock.Lock()
-	// defer c.lock.Unlock()
 	nc, err := LoadCertPair(c.Name, c.Loaded)
 	if err != nil {
 		return err
@@ -144,7 +140,7 @@ func LoadCertPair(name string, mod time.Time) (*Cert, error) {
 	}, nil
 }
 
-func LoadDirectoryCerts(dir string) ([]*Cert, error) {
+func LoadDirectoryCerts(ctx context.Context, dir string) ([]*Cert, error) {
 	files := map[string]bool{}
 	err := filepath.WalkDir(dir, func(path string, info fs.DirEntry, err error) error {
 		if err != nil {
@@ -153,6 +149,13 @@ func LoadDirectoryCerts(dir string) ([]*Cert, error) {
 			}
 			return nil
 		}
+
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+
 		if info.IsDir() {
 			return nil
 		}
@@ -167,13 +170,16 @@ func LoadDirectoryCerts(dir string) ([]*Cert, error) {
 		return nil, err
 	}
 
-	fmt.Println("found cert/key files", files)
-
 	certs := make([]*Cert, 0, len(files))
 	for name := range files {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
 		cert, err := LoadCertPair(name, time.Time{})
 		if err != nil || cert == nil {
-			fmt.Println("Error loading cert", name, "err:", err)
 			continue
 		}
 		certs = append(certs, cert)

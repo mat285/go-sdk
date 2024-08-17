@@ -16,9 +16,9 @@ type Cache struct {
 	modified map[string]*Cert
 }
 
-func NewCache() *Cache {
+func NewCache(log Logger) *Cache {
 	return &Cache{
-		log:      logger.All(),
+		log:      log,
 		certs:    make(map[string]*Cert),
 		sni:      make(map[string]*Cert),
 		modified: make(map[string]*Cert),
@@ -83,10 +83,10 @@ func (c *Cache) Reload(name string) (bool, error) {
 	var added bool
 	cert := c.certs[name]
 	if cert != nil {
-		added = true
+		added = false
 		err = cert.Reload()
 	} else {
-		added = false
+		added = true
 		cert, err = LoadCertPair(name, time.Time{})
 	}
 	if err != nil {
