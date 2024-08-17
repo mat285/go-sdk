@@ -2,7 +2,10 @@ module github.com/mat285/go-sdk
 
 go 1.22.2
 
-require github.com/blend/go-sdk v1.20240719.1
+require (
+	github.com/blend/go-sdk v1.20240719.1
+	github.com/fsnotify/fsnotify v1.7.0
+)
 
 require (
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
@@ -14,6 +17,7 @@ require (
 	github.com/jackc/pgtype v1.9.1 // indirect
 	github.com/jackc/pgx/v4 v4.14.1 // indirect
 	golang.org/x/crypto v0.0.0-20220112180741-5e0467b6c7ce // indirect
+	golang.org/x/sys v0.4.0 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
